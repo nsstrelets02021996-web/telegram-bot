@@ -28,10 +28,18 @@ asyncio.run(test_message())
 tv = TvDatafeed()
 
 TIMEFRAMES = {
-    "M5": Interval.in_5_minute
+    "M3": Interval.in_3_minute,
+    "M5": Interval.in_5_minute,
+    "M15": Interval.in_15_minute
 }
 
-ENABLED_TF = ["M5"]
+ENABLED_TF = ["M3", "M5", "M15"]
+
+EXPIRATION = {
+    "M3": "3 хв",
+    "M5": "5 хв",
+    "M15": "15 хв"
+}
 
 # =========================
 # FOREX PAIRS
