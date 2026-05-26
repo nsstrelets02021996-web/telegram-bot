@@ -204,6 +204,11 @@ async def run_bot():
 
     print("BOT STARTED")
 
+    await bot.send_message(
+        chat_id=CHAT_ID,
+        text="Бот підключений ✅"
+    )
+
     while True:
 
         try:
