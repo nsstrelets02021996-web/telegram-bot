@@ -274,7 +274,7 @@ async def run_bot():
 
                         # ================= DELAY =================
 
-                        await asyncio.sleep(1)
+                        await asyncio.sleep(2)
 
                     except Exception as e:
 
