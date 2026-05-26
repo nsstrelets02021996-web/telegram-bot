@@ -21,12 +21,10 @@ bot = Bot(token=TOKEN)
 tv = TvDatafeed()
 
 TIMEFRAMES = {
-    "M3": Interval.in_3_minute,
-    "M5": Interval.in_5_minute,
-    "M15": Interval.in_15_minute
+    "M5": Interval.in_5_minute
 }
 
-ENABLED_TF = ["M3", "M5", "M15"]
+ENABLED_TF = ["M5"]
 
 PAIRS = [
     ("EURUSD", "FX_IDC"),
