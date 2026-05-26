@@ -9,8 +9,8 @@ import os
 # TELEGRAM
 # =========================
 
-TOKEN = os.getenv("BOT_TOKEN")
-CHAT_ID = os.getenv("CHAT_ID")
+TOKEN = "8817561227:AAHo0m5lRbUod_ytWsIS-BUkNaOlmgH-obo"
+CHAT_ID = "8817561227"
 
 bot = Bot(token=TOKEN)
 
