@@ -19,13 +19,15 @@ async def test_message():
         text="Бот підключений ✅"
     )
 
-asyncio.run(test_message())
-
 # =========================
 # TRADINGVIEW
 # =========================
 
 tv = TvDatafeed()
+
+# =========================
+# TIMEFRAMES
+# =========================
 
 TIMEFRAMES = {
     "M3": Interval.in_3_minute,
@@ -34,6 +36,10 @@ TIMEFRAMES = {
 }
 
 ENABLED_TF = ["M3", "M5", "M15"]
+
+# =========================
+# EXPIRATION
+# =========================
 
 EXPIRATION = {
     "M3": "3 хв",
@@ -47,6 +53,7 @@ EXPIRATION = {
 
 PAIRS = [
 
+    # MAJORS
     ("EURUSD", "OANDA"),
     ("GBPUSD", "OANDA"),
     ("USDJPY", "OANDA"),
@@ -55,6 +62,7 @@ PAIRS = [
     ("USDCAD", "OANDA"),
     ("NZDUSD", "OANDA"),
 
+    # EUR
     ("EURGBP", "OANDA"),
     ("EURJPY", "OANDA"),
     ("EURAUD", "OANDA"),
@@ -62,79 +70,122 @@ PAIRS = [
     ("EURCAD", "OANDA"),
     ("EURNZD", "OANDA"),
 
+    # GBP
     ("GBPJPY", "OANDA"),
     ("GBPAUD", "OANDA"),
     ("GBPCHF", "OANDA"),
     ("GBPCAD", "OANDA"),
     ("GBPNZD", "OANDA"),
 
+    # AUD
     ("AUDJPY", "OANDA"),
     ("AUDCHF", "OANDA"),
     ("AUDCAD", "OANDA"),
     ("AUDNZD", "OANDA"),
 
+    # CAD
     ("CADJPY", "OANDA"),
     ("CADCHF", "OANDA"),
 
+    # CHF
     ("CHFJPY", "OANDA"),
 
+    # NZD
     ("NZDJPY", "OANDA"),
     ("NZDCHF", "OANDA"),
     ("NZDCAD", "OANDA"),
 ]
 
 # =========================
-# АНТИДУБЛЬ
+# ANTIDUPLICATE
 # =========================
 
 processed_signals = set()
 
 # =========================
-# DONCHIAN
+# DONCHIAN CHANNEL
 # =========================
 
 def calculate_donchian(df, period=20):
 
     df['upper'] = df['high'].rolling(period).max()
+
     df['lower'] = df['low'].rolling(period).min()
 
     return df
 
 # =========================
-# SIGNAL
+# CCI
+# =========================
+
+def calculate_cci(df, period=50):
+
+    tp = (df['high'] + df['low'] + df['close']) / 3
+
+    sma = tp.rolling(period).mean()
+
+    mad = tp.rolling(period).apply(
+        lambda x: pd.Series(x).mad()
+    )
+
+    df['cci'] = (tp - sma) / (0.015 * mad)
+
+    return df
+
+# =========================
+# SIGNAL LOGIC
 # =========================
 
 def check_signal(df):
 
-    if len(df) < 25:
+    if len(df) < 60:
         return None
 
     last = df.iloc[-1]
+
     prev = df.iloc[-2]
 
-    # BUY
-    if prev['close'] <= prev['upper'] and last['close'] > last['upper']:
+    # ================= BUY =================
+
+    if (
+        prev['close'] <= prev['upper']
+        and last['close'] > last['upper']
+        and last['cci'] > 150
+    ):
+
         return "BUY"
 
-    # SELL
-    if prev['close'] >= prev['lower'] and last['close'] < last['lower']:
+    # ================= SELL =================
+
+    if (
+        prev['close'] >= prev['lower']
+        and last['close'] < last['lower']
+        and last['cci'] < -150
+    ):
+
         return "SELL"
 
     return None
 
 # =========================
-# SEND TELEGRAM
+# TELEGRAM MESSAGE
 # =========================
 
-async def send_signal(pair, tf, signal):
+async def send_signal(pair, tf, signal, cci):
+
+    signal_text = "📈 BUY" if signal == "BUY" else "📉 SELL"
 
     text = f"""
 🚨 СИГНАЛ
 
 💱 Пара: {pair}
+
 ⏰ Таймфрейм: {tf}
 
-📈 Сигнал: {signal}
+{signal_text}
+
+📊 CCI: {int(cci)}
+
 ⏳ Експірація: {EXPIRATION[tf]}
 
 🕒 Час: {datetime.now().strftime('%H:%M:%S')}
@@ -151,6 +202,8 @@ async def send_signal(pair, tf, signal):
 
 async def run_bot():
 
+    print("BOT STARTED")
+
     while True:
 
         try:
@@ -165,6 +218,8 @@ async def run_bot():
 
                     try:
 
+                        # ================= GET DATA =================
+
                         df = tv.get_hist(
                             symbol=symbol,
                             exchange=exchange,
@@ -172,34 +227,60 @@ async def run_bot():
                             n_bars=200
                         )
 
+                        # ================= CHECK DATA =================
+
                         if df is None or df.empty:
                             continue
 
+                        # ================= INDICATORS =================
+
                         df = calculate_donchian(df)
 
+                        df = calculate_cci(df)
+
+                        # ================= SIGNAL =================
+
                         signal = check_signal(df)
+
+                        # ================= SEND SIGNAL =================
 
                         if signal:
 
                             last_candle_time = str(df.index[-1])
 
-                            signal_id = f"{symbol}_{tf}_{signal}_{last_candle_time}"
+                            signal_id = (
+                                f"{symbol}_{tf}_{signal}_{last_candle_time}"
+                            )
 
                             if signal_id not in processed_signals:
+
+                                cci_value = df.iloc[-1]['cci']
 
                                 await send_signal(
                                     symbol,
                                     tf,
-                                    signal
+                                    signal,
+                                    cci_value
                                 )
 
                                 processed_signals.add(signal_id)
+
+                                print(
+                                    f"SIGNAL: "
+                                    f"{symbol} "
+                                    f"{tf} "
+                                    f"{signal}"
+                                )
+
+                        # ================= DELAY =================
 
                         await asyncio.sleep(1)
 
                     except Exception as e:
 
                         print(f"ERROR {symbol} {tf}: {e}")
+
+            # ================= MAIN DELAY =================
 
             await asyncio.sleep(30)
 
