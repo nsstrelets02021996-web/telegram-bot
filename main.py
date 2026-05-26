@@ -27,34 +27,13 @@ TIMEFRAMES = {
 ENABLED_TF = ["M5"]
 
 PAIRS = [
-    ("EURUSD", "FX_IDC"),
-    ("GBPUSD", "FX_IDC"),
-    ("USDJPY", "FX_IDC"),
-    ("AUDUSD", "FX_IDC"),
-    ("USDCHF", "FX_IDC"),
-    ("USDCAD", "FX_IDC"),
-    ("NZDUSD", "FX_IDC"),
-    ("EURGBP", "FX_IDC"),
-    ("EURJPY", "FX_IDC"),
-    ("GBPJPY", "FX_IDC"),
-    ("CHFJPY", "FX_IDC"),
-    ("CADJPY", "FX_IDC"),
-    ("AUDJPY", "FX_IDC"),
-    ("NZDJPY", "FX_IDC"),
-    ("EURAUD", "FX_IDC"),
-    ("EURCHF", "FX_IDC"),
-    ("AUDCAD", "FX_IDC"),
-    ("AUDCHF", "FX_IDC"),
-    ("AUDNZD", "FX_IDC"),
-    ("GBPAUD", "FX_IDC"),
-    ("GBPCAD", "FX_IDC"),
-    ("GBPCHF", "FX_IDC"),
-    ("GBPNZD", "FX_IDC"),
-    ("NZDCAD", "FX_IDC"),
-    ("NZDCHF", "FX_IDC"),
-    ("CADCHF", "FX_IDC"),
-    ("EURCAD", "FX_IDC"),
-    ("EURNZD", "FX_IDC")
+    ("EURUSD", "OANDA"),
+    ("GBPUSD", "OANDA"),
+    ("USDJPY", "OANDA"),
+    ("AUDUSD", "OANDA"),
+    ("USDCAD", "OANDA"),
+    ("USDCHF", "OANDA"),
+    ("NZDUSD", "OANDA")
 ]
 
 # =========================
@@ -202,14 +181,14 @@ async def run_bot():
                 try:
 
                     df = tv.get_hist(
-                        symbol=pair,
-                        exchange='FX_IDC',
-                        interval=tf_value,
-                        n_bars=150
+                    symbol=symbol,
+                    exchange=exchange,
+                    interval=interval,
+                    n_bars=200
                     )
 
-                    if df is None or len(df) < 120:
-                        continue
+                    if df is None or df.empty:
+                    continue
 
                     df = calculate_donchian(df)
 
@@ -245,7 +224,7 @@ async def run_bot():
 
                     print(f"ERROR: {e}")
 
-        await asyncio.sleep(10)
+        await asyncio.sleep(2)
 
 # =========================
 # START
