@@ -29,11 +29,51 @@ TIMEFRAMES = {
 ENABLED_TF = ["M3", "M5", "M15"]
 
 PAIRS = [
+
+    # FOREX
     "EURUSD",
     "GBPUSD",
     "USDJPY",
+    "USDCHF",
+    "USDCAD",
     "AUDUSD",
-    "USDCHF"
+    "NZDUSD",
+    "EURJPY",
+    "GBPJPY",
+    "EURGBP",
+    "EURAUD",
+    "GBPAUD",
+    "AUDJPY",
+    "CADJPY",
+    "CHFJPY",
+    "EURCHF",
+    "GBPCAD",
+    "GBPCHF",
+    "AUDCAD",
+    "AUDCHF",
+    "NZDJPY",
+    "NZDCAD",
+    "NZDCHF",
+    "EURCAD",
+
+    # OTC
+    "EURUSD-OTC",
+    "GBPUSD-OTC",
+    "USDJPY-OTC",
+    "USDCHF-OTC",
+    "AUDUSD-OTC",
+    "NZDUSD-OTC",
+    "USDCAD-OTC",
+    "EURJPY-OTC",
+    "GBPJPY-OTC",
+    "EURGBP-OTC",
+    "AUDJPY-OTC",
+    "CADJPY-OTC",
+    "CHFJPY-OTC",
+    "EURCHF-OTC",
+    "GBPCHF-OTC",
+    "AUDCHF-OTC",
+    "NZDJPY-OTC"
 ]
 
 # =========================
