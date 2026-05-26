@@ -1,0 +1,4 @@
+pandas
+tvDatafeed
+python-telegram-bot==20.7
+numpy
