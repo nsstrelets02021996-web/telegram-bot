@@ -13,14 +13,6 @@ CHAT_ID = "8611901179"
 
 bot = Bot(token=TOKEN)
 
-async def test_message():
-    await bot.send_message(
-        chat_id=CHAT_ID,
-        text="Бот підключений ✅"
-    )
-
-asyncio.run(test_message())
-
 # =========================
 # TRADINGVIEW
 # =========================
@@ -81,7 +73,6 @@ PAIRS = [
     ("NZDJPY", "OANDA"),
     ("NZDCHF", "OANDA"),
     ("NZDCAD", "OANDA"),
-
 ]
 
 # =========================
@@ -95,8 +86,10 @@ processed_signals = set()
 # =========================
 
 def calculate_donchian(df, period=20):
+
     df['upper'] = df['high'].rolling(period).max()
     df['lower'] = df['low'].rolling(period).min()
+
     return df
 
 # =========================
@@ -104,6 +97,7 @@ def calculate_donchian(df, period=20):
 # =========================
 
 def check_signal(df):
+
     if len(df) < 25:
         return None
 
@@ -133,8 +127,9 @@ async def send_signal(pair, tf, signal):
 ⏰ Таймфрейм: {tf}
 
 📈 Сигнал: {signal}
+⏳ Експірація: {EXPIRATION[tf]}
 
-🕒 Время: {datetime.now().strftime('%H:%M:%S')}
+🕒 Час: {datetime.now().strftime('%H:%M:%S')}
 """
 
     await bot.send_message(
@@ -178,7 +173,9 @@ async def run_bot():
 
                         if signal:
 
-                            signal_id = f"{symbol}_{tf}_{signal}"
+                            last_candle_time = str(df.index[-1])
+
+                            signal_id = f"{symbol}_{tf}_{signal}_{last_candle_time}"
 
                             if signal_id not in processed_signals:
 
@@ -190,15 +187,18 @@ async def run_bot():
 
                                 processed_signals.add(signal_id)
 
-                        await asyncio.sleep(2)
+                        await asyncio.sleep(1)
 
                     except Exception as e:
+
                         print(f"ERROR {symbol} {tf}: {e}")
 
             await asyncio.sleep(30)
 
         except Exception as e:
+
             print(f"MAIN ERROR: {e}")
+
             await asyncio.sleep(10)
 
 # =========================
