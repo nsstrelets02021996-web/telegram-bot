@@ -3,7 +3,6 @@ from tvDatafeed import TvDatafeed, Interval
 from telegram import Bot
 import asyncio
 from datetime import datetime
-import os
 
 # =========================
 # TELEGRAM
@@ -26,6 +25,10 @@ TIMEFRAMES = {
 
 ENABLED_TF = ["M5"]
 
+# =========================
+# FOREX PAIRS
+# =========================
+
 PAIRS = [
     ("EURUSD", "OANDA"),
     ("GBPUSD", "OANDA"),
@@ -46,27 +49,9 @@ processed_signals = set()
 # DONCHIAN
 # =========================
 
-def calculate_donchian(df, period=100):
+def calculate_donchian(df, period=20):
     df['upper'] = df['high'].rolling(period).max()
     df['lower'] = df['low'].rolling(period).min()
-    return df
-
-# =========================
-# CCI
-# =========================
-
-def calculate_cci(df, period=50):
-
-    tp = (df['high'] + df['low'] + df['close']) / 3
-
-    sma = tp.rolling(period).mean()
-
-    mad = tp.rolling(period).apply(
-        lambda x: pd.Series(x).mad()
-    )
-
-    df['cci'] = (tp - sma) / (0.015 * mad)
-
     return df
 
 # =========================
@@ -74,92 +59,43 @@ def calculate_cci(df, period=50):
 # =========================
 
 def check_signal(df):
+    if len(df) < 25:
+        return None
 
     last = df.iloc[-1]
-
-    candle_size = last['high'] - last['low']
-
-    # SELL
-    if last['close'] > last['upper']:
-
-        breakout = last['close'] - last['upper']
-
-        if breakout >= candle_size * 0.2 and last['cci'] > 150:
-            return "SELL", last
+    prev = df.iloc[-2]
 
     # BUY
-    if last['close'] < last['lower']:
+    if prev['close'] <= prev['upper'] and last['close'] > last['upper']:
+        return "BUY"
 
-        breakout = last['lower'] - last['close']
+    # SELL
+    if prev['close'] >= prev['lower'] and last['close'] < last['lower']:
+        return "SELL"
 
-        if breakout >= candle_size * 0.2 and last['cci'] < -150:
-            return "BUY", last
-
-    return None, None
+    return None
 
 # =========================
-# MESSAGE
+# SEND TELEGRAM
 # =========================
 
-def format_message(pair, tf, signal, data):
+async def send_signal(pair, tf, signal):
 
-    price = round(data['close'], 5)
+    text = f"""
+🚨 СИГНАЛ
 
-    cci = int(data['cci'])
+💱 Пара: {pair}
+⏰ Таймфрейм: {tf}
 
-    current_time = datetime.now().strftime("%H:%M:%S")
+📈 Сигнал: {signal}
 
-    strong = abs(cci) > 200
-
-    if signal == "SELL":
-
-        text = f"""
-🚨 СИГНАЛ НА ПРОДАЖ 🚨
-
-📉 {pair}
-━━━━━━━━━━━━━━━
-
-⏱ Таймфрейм: {tf}
-
-🔴⬇️ ВХІД ВНИЗ ⬇️🔴
-
-💰 Ціна: {price}
-📊 CCI: {cci} {"🔥" if strong else ""}
-
-📌 Умова:
-Пробій верхнього каналу (20%+)
-
-{"⚡ СИЛЬНИЙ СИГНАЛ ⚡" if strong else ""}
-
-⏰ Час: {current_time}
-⏳ Експірація: {tf.replace("M", "")} хв
+🕒 Время: {datetime.now().strftime('%H:%M:%S')}
 """
 
-    else:
-
-        text = f"""
-🚨 СИГНАЛ НА ПОКУПКУ 🚨
-
-📈 {pair}
-━━━━━━━━━━━━━━━
-
-⏱ Таймфрейм: {tf}
-
-🟢⬆️ ВХІД ВГОРУ ⬆️🟢
-
-💰 Ціна: {price}
-📊 CCI: {cci} {"🔥" if strong else ""}
-
-📌 Умова:
-Пробій нижнього каналу (20%+)
-
-{"⚡ СИЛЬНИЙ СИГНАЛ ⚡" if strong else ""}
-
-⏰ Час: {current_time}
-⏳ Експірація: {tf.replace("M", "")} хв
-"""
-
-    return text
+    await bot.send_message(
+        chat_id=CHAT_ID,
+        text=text
+    )
 
 # =========================
 # MAIN LOOP
@@ -167,64 +103,58 @@ def format_message(pair, tf, signal, data):
 
 async def run_bot():
 
-    print("BOT STARTED")
-
     while True:
 
-        for pair in PAIRS:
+        try:
 
-            for tf_name, tf_value in TIMEFRAMES.items():
+            for pair in PAIRS:
 
-                if tf_name not in ENABLED_TF:
-                    continue
+                symbol, exchange = pair
 
-                try:
+                for tf in ENABLED_TF:
 
-                    df = tv.get_hist(
-                    symbol=symbol,
-                    exchange=exchange,
-                    interval=interval,
-                    n_bars=200
-                    )
+                    interval = TIMEFRAMES[tf]
 
-                    if df is None or df.empty:
-                    continue
+                    try:
 
-                    df = calculate_donchian(df)
+                        df = tv.get_hist(
+                            symbol=symbol,
+                            exchange=exchange,
+                            interval=interval,
+                            n_bars=200
+                        )
 
-                    df = calculate_cci(df)
-
-                    signal, data = check_signal(df)
-
-                    if signal:
-
-                        unique_signal = f"{pair}_{tf_name}_{signal}_{data.name}"
-
-                        # антидубль
-                        if unique_signal in processed_signals:
+                        if df is None or df.empty:
                             continue
 
-                        processed_signals.add(unique_signal)
+                        df = calculate_donchian(df)
 
-                        message = format_message(
-                            pair,
-                            tf_name,
-                            signal,
-                            data
-                        )
+                        signal = check_signal(df)
 
-                        await bot.send_message(
-                            chat_id=CHAT_ID,
-                            text=message
-                        )
+                        if signal:
 
-                        print(f"SENT: {unique_signal}")
+                            signal_id = f"{symbol}_{tf}_{signal}"
 
-                except Exception as e:
+                            if signal_id not in processed_signals:
 
-                    print(f"ERROR: {e}")
+                                await send_signal(
+                                    symbol,
+                                    tf,
+                                    signal
+                                )
 
-        await asyncio.sleep(2)
+                                processed_signals.add(signal_id)
+
+                        await asyncio.sleep(2)
+
+                    except Exception as e:
+                        print(f"ERROR {symbol} {tf}: {e}")
+
+            await asyncio.sleep(30)
+
+        except Exception as e:
+            print(f"MAIN ERROR: {e}")
+            await asyncio.sleep(10)
 
 # =========================
 # START
