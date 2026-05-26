@@ -106,7 +106,7 @@ processed_signals = set()
 # DONCHIAN CHANNEL
 # =========================
 
-def calculate_donchian(df, period=20):
+def calculate_donchian(df, period=100):
 
     df['upper'] = df['high'].rolling(period).max()
 
