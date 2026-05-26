@@ -30,13 +30,42 @@ ENABLED_TF = ["M5"]
 # =========================
 
 PAIRS = [
+
     ("EURUSD", "OANDA"),
     ("GBPUSD", "OANDA"),
     ("USDJPY", "OANDA"),
+    ("USDCHF", "OANDA"),
     ("AUDUSD", "OANDA"),
     ("USDCAD", "OANDA"),
-    ("USDCHF", "OANDA"),
-    ("NZDUSD", "OANDA")
+    ("NZDUSD", "OANDA"),
+
+    ("EURGBP", "OANDA"),
+    ("EURJPY", "OANDA"),
+    ("EURAUD", "OANDA"),
+    ("EURCHF", "OANDA"),
+    ("EURCAD", "OANDA"),
+    ("EURNZD", "OANDA"),
+
+    ("GBPJPY", "OANDA"),
+    ("GBPAUD", "OANDA"),
+    ("GBPCHF", "OANDA"),
+    ("GBPCAD", "OANDA"),
+    ("GBPNZD", "OANDA"),
+
+    ("AUDJPY", "OANDA"),
+    ("AUDCHF", "OANDA"),
+    ("AUDCAD", "OANDA"),
+    ("AUDNZD", "OANDA"),
+
+    ("CADJPY", "OANDA"),
+    ("CADCHF", "OANDA"),
+
+    ("CHFJPY", "OANDA"),
+
+    ("NZDJPY", "OANDA"),
+    ("NZDCHF", "OANDA"),
+    ("NZDCAD", "OANDA"),
+
 ]
 
 # =========================
