@@ -9,7 +9,7 @@ from datetime import datetime
 # =========================
 
 TOKEN = "8817561227:AAHo0m5lRbUod_ytWsIS-BUkNaOlmgH-obo"
-CHAT_ID = "8817561227"
+CHAT_ID = "8611901179"
 
 bot = Bot(token=TOKEN)
 
