@@ -13,6 +13,14 @@ CHAT_ID = "8611901179"
 
 bot = Bot(token=TOKEN)
 
+async def test_message():
+    await bot.send_message(
+        chat_id=CHAT_ID,
+        text="Бот підключений ✅"
+    )
+
+asyncio.run(test_message())
+
 # =========================
 # TRADINGVIEW
 # =========================
