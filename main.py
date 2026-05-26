@@ -138,7 +138,7 @@ def calculate_cci(df, period=50):
 
 def check_signal(df):
 
-    if len(df) < 60:
+    if len(df) < 120:
         return None
 
     last = df.iloc[-1]
