@@ -17,7 +17,10 @@ bot = Bot(token=TOKEN)
 # TRADINGVIEW
 # =========================
 
-tv = TvDatafeed()
+tv = TvDatafeed(
+    username="ms.strilets02021996@gmail.com",
+    password="Pinila02021996"
+)
 
 # =========================
 # TIMEFRAMES
