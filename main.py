@@ -24,17 +24,19 @@ tv = TvDatafeed()
 # =========================
 
 TIMEFRAMES = {
+    "M3": Interval.in_3_minute,
     "M5": Interval.in_5_minute,
     "M15": Interval.in_15_minute
 }
 
-ENABLED_TF = ["M5", "M15"]
+ENABLED_TF = ["M3", "M5", "M15"]
 
 # =========================
 # EXPIRATION
 # =========================
 
 EXPIRATION = {
+    "M3": "3 хв",
     "M5": "5 хв",
     "M15": "15 хв"
 }
@@ -98,7 +100,7 @@ processed_signals = set()
 # DONCHIAN CHANNEL
 # =========================
 
-def calculate_donchian(df, period=100):
+def calculate_donchian(df, period=50):
 
     df['upper'] = df['high'].rolling(period).max()
 
@@ -110,7 +112,7 @@ def calculate_donchian(df, period=100):
 # CCI
 # =========================
 
-def calculate_cci(df, period=50):
+def calculate_cci(df, period=20):
 
     tp = (df['high'] + df['low'] + df['close']) / 3
 
@@ -130,7 +132,7 @@ def calculate_cci(df, period=50):
 
 def check_signal(df):
 
-    if len(df) < 120:
+    if len(df) < 60:
         return None
 
     last = df.iloc[-1]
@@ -142,7 +144,7 @@ def check_signal(df):
     if (
         prev['close'] <= prev['upper']
         and last['close'] > last['upper']
-        and last['cci'] > 150
+        and last['cci'] > 100
     ):
 
         return "BUY"
@@ -152,7 +154,7 @@ def check_signal(df):
     if (
         prev['close'] >= prev['lower']
         and last['close'] < last['lower']
-        and last['cci'] < -150
+        and last['cci'] < -100
     ):
 
         return "SELL"
@@ -195,11 +197,6 @@ async def send_signal(pair, tf, signal, cci):
 async def run_bot():
 
     print("BOT STARTED")
-
-    await bot.send_message(
-        chat_id=CHAT_ID,
-        text="Бот підключений ✅"
-    )
 
     while True:
 
