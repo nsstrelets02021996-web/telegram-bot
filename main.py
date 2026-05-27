@@ -30,19 +30,17 @@ tv = TvDatafeed()
 # =========================
 
 TIMEFRAMES = {
-    "M3": Interval.in_3_minute,
     "M5": Interval.in_5_minute,
     "M15": Interval.in_15_minute
 }
 
-ENABLED_TF = ["M3", "M5", "M15"]
+ENABLED_TF = ["M5", "M15"]
 
 # =========================
 # EXPIRATION
 # =========================
 
 EXPIRATION = {
-    "M3": "3 хв",
     "M5": "5 хв",
     "M15": "15 хв"
 }
@@ -279,7 +277,7 @@ async def run_bot():
 
                         # ================= DELAY =================
 
-                        await asyncio.sleep(2)
+                        await asyncio.sleep(4)
 
                     except Exception as e:
 
@@ -287,7 +285,7 @@ async def run_bot():
 
             # ================= MAIN DELAY =================
 
-            await asyncio.sleep(30)
+            await asyncio.sleep(60)
 
         except Exception as e:
 
