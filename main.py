@@ -18,7 +18,7 @@ bot = Bot(token=TOKEN)
 # =========================
 
 tv = TvDatafeed(
-    username="ms.strilets02021996@gmail.com",
+    username="ms_strilets02021996",
     password="Pinila02021996"
 )
 
